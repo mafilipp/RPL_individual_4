@@ -24,17 +24,11 @@
 
 #include "map.h"
 #include "Model.h"
+#include "Particle.h"
 
 
 using namespace std;
 
-
-
-//// Callback function for map messages
-//void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg)
-//{
-//  ROS_INFO("I read a map!");
-//}
 
 
 geometry_msgs::PoseArray publishParticleArray()
@@ -99,9 +93,22 @@ void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 // ==================================================
 
 
+int xGrid = 200;
+int yGrid = 200;
+int thetaGrid = 90;
 
+int totalNumberElement = xGrid * yGrid * thetaGrid;
 
+// x = column, y = row, theta = third dimension
+int getIndex(int x, int y, int theta)
+{
+	return x + y * xGrid + theta * (xGrid * yGrid);
+}
 
+double deg2Rad(double grad)
+{
+	return grad/180*M_PI;
+}
 //=====================================
 
 // Main
@@ -114,9 +121,38 @@ int main(int argc, char **argv)
   double robotRadius = 0.08;
   Map gridMap(robotRadius);
   bool PathComputed = false;
-  Model model;
 
-  struct timeval tv;
+
+  // Particles
+  int numberParticle = 100;
+
+  Particle * particleCloud = new Particle[numberParticle];
+
+  unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+  std::default_random_engine generator (seed);
+  std::uniform_real_distribution<double> distribution(0.0,1.0);
+  double number;
+
+  // Initialize Particle Cloud
+  for (int i = 0; i < numberParticle; i++)
+  {
+
+	  number = distribution(generator);
+	  particleCloud[i].setX(number*200);
+
+	  number = distribution(generator);
+	  particleCloud[i].setY(number*200);
+
+	  number = distribution(generator);
+	  particleCloud[i].setTheta( deg2Rad(number*90) );
+  }
+
+  // Model
+  Model Model(particleCloud);
+
+
+
+
 
   ros::NodeHandle n;
 
@@ -160,7 +196,6 @@ int main(int argc, char **argv)
 
 	  single_particle_pose.publish(model.publishSinglePose());
 
-	  ROS_INFO("Up");
 
 
 
