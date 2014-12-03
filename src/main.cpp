@@ -72,17 +72,7 @@ void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 }
 
 
-geometry_msgs::PoseStamped publishSinglePose(geometry_msgs::Pose pose)
-{
-	geometry_msgs::PoseStamped poseStamped;
 
-	poseStamped.header.frame_id = "odometry_link";
-	poseStamped.header.stamp = ros::Time();
-
-	poseStamped.pose = pose;
-
-	return poseStamped;
-}
 
 //geometry_msgs::PoseStamped publishSinglePose(geometry_msgs::Pose posess)
 //{
@@ -116,12 +106,16 @@ class Model
 public:
 	void odomCallback(const nav_msgs::Odometry::ConstPtr& msg);
 	double sample(double variance);
-	geometry_msgs::Pose modelPrediction();
-	void setModelUpdatedPose(geometry_msgs::Pose pose);
+	void modelPrediction();
+	void setModelUpdatedPose();
 	Model();
+	geometry_msgs::PoseStamped publishSinglePose();
+
 
 
 private:
+	geometry_msgs::Pose pose;
+
 	// Used by callback
 	double x_odom, x_odom_old, y_odom, y_odom_old, theta_odom, theta_odom_old;
 	double dRot1, dTrans, dRot2;
@@ -170,13 +164,25 @@ Model::Model()
 	isUpToDate = false;
 }
 
+geometry_msgs::PoseStamped Model::publishSinglePose()
+{
+	geometry_msgs::PoseStamped poseStamped;
+
+	poseStamped.header.frame_id = "odometry_link";
+	poseStamped.header.stamp = ros::Time();
+
+	poseStamped.pose = pose;
+
+	return poseStamped;
+}
+
 void Model::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
 	ROS_INFO("odom");
 
 	// Introduce flag to avoid dreadlock
-	if( ! usingOdomData)
-	{
+//	if( ! usingOdomData)
+//	{
 		overwritingOdometry = true;
 
 		x_odom_old = x_odom;
@@ -190,19 +196,24 @@ void Model::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 		isUpToDate = true;
 		overwritingOdometry = false;
 
-	}
+//	}
 
 
+		  // Model update
+		  modelPrediction();
+
+		  // Sensor Update
+
+		  // General Update
+		  setModelUpdatedPose();
 
 }
 
-geometry_msgs::Pose Model::modelPrediction()
+void Model::modelPrediction()
 {
-	if(!overwritingOdometry && isUpToDate)
-	{
-		usingOdomData = true;
-
-		geometry_msgs::Pose pose;
+//	if(!overwritingOdometry && isUpToDate)
+//	{
+//		usingOdomData = true;
 
 		dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
 		dTrans = sqrt( pow((x_odom_old - x_odom), 2) + pow((y_odom_old - y_odom), 2) );
@@ -226,13 +237,13 @@ geometry_msgs::Pose Model::modelPrediction()
 
 		usingOdomData = false;
 		isUpToDate = false;
-		return pose;
+//		return pose;
 
-	}
+//	}
 
 }
 
-void Model::setModelUpdatedPose(geometry_msgs::Pose pose)
+void Model::setModelUpdatedPose()
 {
 	x_old = pose.position.x;
 	y_old = pose.position.y;
@@ -295,7 +306,6 @@ int main(int argc, char **argv)
   }
 
 
-  geometry_msgs::Pose pose;
 
 
   while (ros::ok())
@@ -303,20 +313,10 @@ int main(int argc, char **argv)
 
 	  ros::spinOnce();
 
-	  // Model update
-	  pose = model.modelPrediction();
-
-	  // Sensor Update
-
-	  // General Update
-	  model.setModelUpdatedPose(pose);
-
-
-
 	  // Publish
 	  particle_pose.publish(publishParticleArray());
 
-	  single_particle_pose.publish(publishSinglePose(pose));
+	  single_particle_pose.publish(model.publishSinglePose());
 
 	  ROS_INFO("Up");
 
