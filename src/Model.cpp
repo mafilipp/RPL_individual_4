@@ -8,7 +8,7 @@
 #include "Model.h"
 
 
-Model::Model()
+Model::Model(Particle * pc, int nOp)
 {
 	// Initialize all the parameter
 
@@ -42,6 +42,9 @@ Model::Model()
 	overwritingOdometry = false;
 	usingOdomData = false;
 	isUpToDate = false;
+
+	particleCloud = pc;
+	numberOfParticle = nOp;
 }
 
 Model::~Model() {
@@ -141,4 +144,28 @@ double Model::sample(double variance)
 	std::normal_distribution<double> distribution(0, sqrt(variance));
 
 	return distribution(generator);
+}
+
+
+geometry_msgs::PoseArray Model::publishParticleArray()
+{
+	geometry_msgs::PoseArray poseArray;
+	geometry_msgs::Pose pose;
+
+	poseArray.header.frame_id = "odometry_link";
+	poseArray.header.stamp = ros::Time();
+//	poseArray.header.seq = 1;  --> A cosa serve?
+
+	// For all particle, plot the pose
+	for (int i = 0; i < numberOfParticle; i ++)
+	{
+		pose.position.x = particleCloud[i].getX();
+		pose.position.y = particleCloud[i].getY();
+		pose.position.z = 0.0;
+		pose.orientation = tf::createQuaternionMsgFromYaw(particleCloud[i].getTheta());
+
+		poseArray.poses.push_back(pose);
+	}
+
+	return poseArray;
 }

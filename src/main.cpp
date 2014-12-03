@@ -31,31 +31,6 @@ using namespace std;
 
 
 
-geometry_msgs::PoseArray publishParticleArray()
-{
-	geometry_msgs::PoseArray poseArray;
-	geometry_msgs::Pose pose;
-	geometry_msgs::Quaternion quaternion;
-
-	poseArray.header.frame_id = "map";
-	poseArray.header.stamp = ros::Time();
-//	poseArray.header.seq = 1;  --> A cosa serve?
-
-	// For all particle, plot the pose
-	for (int i = 0; i < 10; i ++)
-	{
-		quaternion = tf::createQuaternionMsgFromYaw(M_PI/2);
-
-		pose.position.x = 0.2;
-		pose.position.y = 0.0;
-		pose.position.z = 0.0;
-		pose.orientation = quaternion;
-
-		poseArray.poses.push_back(pose);
-	}
-
-	return poseArray;
-}
 
 void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
@@ -138,21 +113,17 @@ int main(int argc, char **argv)
   {
 
 	  number = distribution(generator);
-	  particleCloud[i].setX(number*200);
+	  particleCloud[i].setX(number*2);
 
 	  number = distribution(generator);
-	  particleCloud[i].setY(number*200);
+	  particleCloud[i].setY(number*2);
 
 	  number = distribution(generator);
 	  particleCloud[i].setTheta( deg2Rad(number*90) );
   }
 
   // Model
-  Model Model(particleCloud);
-
-
-
-
+  Model model(particleCloud, numberParticle);
 
   ros::NodeHandle n;
 
@@ -191,10 +162,12 @@ int main(int argc, char **argv)
 
 	  ros::spinOnce();
 
-	  // Publish
-	  particle_pose.publish(publishParticleArray());
 
-	  single_particle_pose.publish(model.publishSinglePose());
+	  // Publish
+
+//	  single_particle_pose.publish(model.publishSinglePose());
+
+	  particle_pose.publish(model.publishParticleArray());
 
 
 
@@ -207,6 +180,9 @@ int main(int argc, char **argv)
 
   return 0;
 }
+
+//	  particle_pose.publish(publishParticleArray());
+
 
 // Get c++ version
 //	  if( __cplusplus == 201103L ) std::cout << "C++11\n" ;

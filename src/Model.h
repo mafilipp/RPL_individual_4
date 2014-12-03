@@ -23,17 +23,21 @@
 #include <iostream>
 #include <chrono>
 
+#include "Particle.h"
+
 
 class Model
 {
 public:
-	Model();
+	Model(Particle * pc, int nOp);
 	virtual ~Model();
 	void odomCallback(const nav_msgs::Odometry::ConstPtr& msg);
 	double sample(double variance);
 	void modelPrediction();
 	void setModelUpdatedPose();
 	geometry_msgs::PoseStamped publishSinglePose();
+	geometry_msgs::PoseArray publishParticleArray();
+
 
 
 
@@ -51,6 +55,8 @@ private:
 	bool usingOdomData;
 	bool isUpToDate;
 
+	Particle * particleCloud;
+	int numberOfParticle;
 	//
 };
 #endif /* MAFILIPP_PARTICLE_FILTER_SRC_MODEL_H_ */
