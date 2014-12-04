@@ -34,7 +34,7 @@ using namespace std;
 
 void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-	ROS_INFO("Laser");
+//	ROS_INFO("Laser");
 }
 
 
@@ -165,7 +165,7 @@ int main(int argc, char **argv)
 
 	  // Publish
 
-//	  single_particle_pose.publish(model.publishSinglePose());
+	  single_particle_pose.publish(model.publishSinglePose());
 
 	  particle_pose.publish(model.publishParticleArray());
 

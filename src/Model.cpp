@@ -102,33 +102,94 @@ void Model::modelPrediction()
 //	{
 //		usingOdomData = true;
 
-		dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
-		dTrans = sqrt( pow((x_odom_old - x_odom), 2) + pow((y_odom_old - y_odom), 2) );
-		dRot2 = theta_odom - theta_odom_old - dRot1;
+//	alpha1 = 0.01;
+//	alpha2 = 0.02;
+//	alpha3 = 0.01;
+//	alpha4 = 0.01;
 
-		dRot1_hat = dRot1;// - sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2));
-		dTrans_hat = dTrans;// - sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) );
-		dRot2_hat = dRot2;// - sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) );
+//	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
+	dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
+	dTrans = sqrt( pow((x_odom_old - x_odom), 2) + pow((y_odom_old - y_odom), 2) );
+	dRot2 = theta_odom - theta_odom_old - dRot1;
+
+	dRot1_hat = dRot1   - sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2));
+	dTrans_hat = dTrans - sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) );
+	dRot2_hat = dRot2   - sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) );
+
+	for(int i = 0; i < numberOfParticle; i++)
+	{
+
+		x_old = particleCloud[i].getX();
+		y_old = particleCloud[i].getY();
+		theta_old = particleCloud[i].getTheta();
 
 		x = x_old + dTrans_hat * cos( theta_old + dRot1_hat);
 		y = y_old + dTrans_hat * sin( theta_old + dRot1_hat);
 		theta = theta_old + dRot1_hat + dRot2_hat;
 
+		particleCloud[i].setX(x);
+		particleCloud[i].setY(y);
+		particleCloud[i].setTheta(theta);
 
+//		pose.position.x = x;
+//		pose.position.y = y;
+//		pose.position.z = 0;
+//		pose.orientation = tf::createQuaternionMsgFromYaw(theta);
 
-		pose.position.x = x;
-		pose.position.y = y;
-		pose.position.z = 0;
-		pose.orientation = tf::createQuaternionMsgFromYaw(theta);
-
-
+//	}
 		usingOdomData = false;
 		isUpToDate = false;
 //		return pose;
 
-//	}
+	}
 
 }
+
+// For one particle
+//void Model::modelPrediction()
+//{
+////	if(!overwritingOdometry && isUpToDate)
+////	{
+////		usingOdomData = true;
+//
+////	for(int i = 0; i < numberOfParticle; i++)
+////	{
+//
+//		// TODO: scrivi le cose in maniera che l'update avvenga per ogni particella
+//
+//	alpha1 = 0.01;
+//	alpha2 = 0.02;
+//	alpha3 = 0.01;
+//	alpha4 = 0.01;
+//
+//	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
+//		dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
+//		dTrans = sqrt( pow((x_odom_old - x_odom), 2) + pow((y_odom_old - y_odom), 2) );
+//		dRot2 = theta_odom - theta_odom_old - dRot1;
+//
+//		dRot1_hat = dRot1   - sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2));
+//		dTrans_hat = dTrans - sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) );
+//		dRot2_hat = dRot2   - sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) );
+//
+//		x = x_old + dTrans_hat * cos( theta_old + dRot1_hat);
+//		y = y_old + dTrans_hat * sin( theta_old + dRot1_hat);
+//		theta = theta_old + dRot1_hat + dRot2_hat;
+//
+//
+//
+//		pose.position.x = x;
+//		pose.position.y = y;
+//		pose.position.z = 0;
+//		pose.orientation = tf::createQuaternionMsgFromYaw(theta);
+//
+////	}
+//		usingOdomData = false;
+//		isUpToDate = false;
+////		return pose;
+//
+////	}
+//
+//}
 
 void Model::setModelUpdatedPose()
 {
