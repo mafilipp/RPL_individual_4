@@ -137,6 +137,11 @@ void Map::inflate()
 	}
 }
 
+//void Map::clearMap()
+//{
+//	for
+//}
+
 // Since map.data is an array, getIndex convert the matrix index (easy for calculation) in the aray index
 int Map::getIndex(int row, int column)
 {
@@ -168,6 +173,7 @@ int Map::getColumn() const {
 
 void Map::setColumn(int column) {
 	nColumn = column;
+	m_map.info.width = column;
 }
 
 int Map::getRow() const {
@@ -176,6 +182,7 @@ int Map::getRow() const {
 
 void Map::setRow(int row) {
 	nRow = row;
+	m_map.info.height = row;
 }
 
 const geometry_msgs::Pose& Map::getOrigin() const {
@@ -184,6 +191,7 @@ const geometry_msgs::Pose& Map::getOrigin() const {
 
 void Map::setOrigin(const geometry_msgs::Pose& origin) {
 	this->origin = origin;
+	m_map.info.origin = origin;
 }
 
 const int* Map::getOriginPx() const {

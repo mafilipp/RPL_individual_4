@@ -44,6 +44,8 @@ public:
 private:
 	geometry_msgs::Pose pose;
 
+	std::default_random_engine generator;
+
 	// Used by callback
 	double x_odom, x_odom_old, y_odom, y_odom_old, theta_odom, theta_odom_old;
 	double dRot1, dTrans, dRot2;

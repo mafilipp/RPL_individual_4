@@ -45,6 +45,9 @@ Model::Model(Particle * pc, int nOp)
 
 	particleCloud = pc;
 	numberOfParticle = nOp;
+
+	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+	generator.seed(seed);
 }
 
 Model::~Model() {
@@ -102,12 +105,12 @@ void Model::modelPrediction()
 //	{
 //		usingOdomData = true;
 
-//	alpha1 = 0.01;
-//	alpha2 = 0.02;
-//	alpha3 = 0.01;
-//	alpha4 = 0.01;
+	alpha1 = 0.01;
+	alpha2 = 0.01;
+	alpha3 = 0.01;
+	alpha4 = 0.01;
 
-//	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
+	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
 	dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
 	dTrans = sqrt( pow((x_odom_old - x_odom), 2) + pow((y_odom_old - y_odom), 2) );
 	dRot2 = theta_odom - theta_odom_old - dRot1;
@@ -200,11 +203,13 @@ void Model::setModelUpdatedPose()
 
 double Model::sample(double variance)
 {
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	std::default_random_engine generator (seed);
-	std::normal_distribution<double> distribution(0, sqrt(variance));
 
-	return distribution(generator);
+
+//	std::normal_distribution<double> distribution(0, sqrt(variance));
+//
+//	return distribution(generator);
+
+	return ( rand()/RAND_MAX * sqrt(variance) *sqrt(6));
 }
 
 
