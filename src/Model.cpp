@@ -90,12 +90,11 @@ void Model::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 
 
 	// Model update
-	modelPrediction();
 
 	// Sensor Update
 
 	// General Update
-	setModelUpdatedPose();
+//	setModelUpdatedPose();
 
 }
 
@@ -110,7 +109,7 @@ void Model::modelPrediction()
 	alpha3 = 0.01;
 	alpha4 = 0.01;
 
-	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
+//	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
 	dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
 	dTrans = sqrt( pow((x_odom_old - x_odom), 2) + pow((y_odom_old - y_odom), 2) );
 	dRot2 = theta_odom - theta_odom_old - dRot1;

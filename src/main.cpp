@@ -40,7 +40,7 @@ private:
 
 	sensor_msgs::LaserScan::ConstPtr scanPtr;
 	Particle * particleCloud;
-	Map globalMap;
+	Map * globalMap;
 	int numberOfParticle;
 
 	float rangeMin;
@@ -59,6 +59,7 @@ public:
 	nav_msgs::OccupancyGrid getMapMsg();
 
 	double * findCorrespondence();
+	void resample(double * correlation);
 
 };
 
@@ -66,7 +67,7 @@ Sensor::Sensor(Particle * pc, int nOp, Map Globalmap)
 {
 	particleCloud = pc;
 	numberOfParticle = nOp;
-	globalMap = Globalmap;
+	globalMap = &Globalmap;
 }
 
 void Sensor::laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
@@ -88,35 +89,94 @@ double * Sensor::findCorrespondence()
 
 	for (int i = 0; i < numberOfParticle; i++)
 	{
+		int idx = 0;
+		int count = 0;
+		double total = 0;
+
 		// Find possible Cell
 		for (double angle = angleMin; angle < angleMax; angle = angle + angleIncrement)
 		{
 			// Find the distance to the wall
 			double x, y, theta, upX, upY;
-			upX = cos(angle)*globalMap.getResolution();
-			upY = sin(angle)*globalMap.getResolution();
-			int idx = 0;
 
-			x = particleCloud[i].x;
-			y = particleCloud[i].y;
-			theta = particleCloud[i].theta;
+			x = particleCloud[i].getX();
+			y = particleCloud[i].getY();
+			theta = particleCloud[i].getTheta();
 
-			for(double dist = 0; dist < 1; dist = dist + 1)
+			upX = cos(angle + theta)*globalMap->getResolution();
+			upY = sin(angle + theta)*globalMap->getResolution();
+
+
+			for(double dist = 0; dist < 1; dist = dist + 0.01)
 			{
 				x = x + upX;
 				y = y + upY;
-				if(globalMap.isOccupied(x,y))
+
+				if(globalMap->isOccupied(x,y))
 				{
-					total = total + pow( sqrt(x*x + y*y) - scanPtr->ranges[idx];
-					idx = idx + 1;
+					count = count + 1;
+					if(scanPtr->ranges[idx] < rangeMax)
+					{
+						total = total + std::abs(dist - scanPtr->ranges[idx]);
+
+					}
+					continue;
 				}
 			}
+
+			idx = idx + 1;
 		}
+
 		// Calculate Correlation
 
 		// Store it in the correlation array
-		correlation[i] = 9;
+		correlation[i] = total;
 	}
+}
+
+void Sensor::resample(double * correlation)
+{
+	// Find the total
+	double sum = 0;
+	double random;
+
+	// Create a new particle vector
+	Particle * resampledParticle = new Particle[numberOfParticle];
+
+
+	for(int i = 0; i < numberOfParticle; i++)
+	{
+		sum = sum + correlation[i];
+	}
+
+	// Normalize the correlation vector
+	for(int i = 0; i < numberOfParticle; i++)
+	{
+		correlation[i] = correlation[i] / sum;
+	}
+
+	double beta[numberOfParticle];
+	sum = 0;
+	// Calculate the vector for resampling
+	for(int i = 0; i < numberOfParticle; i++)
+	{
+		sum = sum + correlation[i];
+		beta[i] = sum;
+	}
+
+	// Choose the weighted particle
+	for(int i = 0; i < numberOfParticle; i++)
+	{
+		random = rand()/RAND_MAX;
+		for(int j = 0; j < numberOfParticle; j++)
+		{
+			if(random < correlation[j])
+				resampledParticle[i] = particleCloud[j];
+		}
+	}
+
+	particleCloud =  resampledParticle;
+
 }
 
 //
@@ -256,12 +316,12 @@ int main(int argc, char **argv)
 
   Sensor sensor(particleCloud, numberParticle, gridMap);
 
+  // Initialize Particle Cloud
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator (seed);
   std::uniform_real_distribution<double> distribution(0.0,1.0);
   double number;
 
-  // Initialize Particle Cloud
   for (int i = 0; i < numberParticle; i++)
   {
 
@@ -293,7 +353,6 @@ int main(int argc, char **argv)
   ros::Publisher single_particle_pose = n.advertise<geometry_msgs::PoseStamped>( "/single_particle_pose", 0 );
 
 
-  ros::Rate loop_rate(1);
 
   // First wait until we get the map and is inflated
   while (!gridMap.isUpToDate() && !gridMap.isAlreadyInflated())
@@ -306,10 +365,12 @@ int main(int argc, char **argv)
 	//inflatedMapPublisher.publish(gridMap.getMap());
 
     // Publish the path
-    loop_rate.sleep();
+//    loop_rate.sleep();
   }
 
 
+
+  ros::Rate loop_rate(10);
 
 
   while (ros::ok())
@@ -320,6 +381,9 @@ int main(int argc, char **argv)
 
 	  // Publish
 
+	  model.modelPrediction();
+
+
 	  single_particle_pose.publish(model.publishSinglePose());
 
 	  particle_pose.publish(model.publishParticleArray());
@@ -327,11 +391,25 @@ int main(int argc, char **argv)
 
 //	  perceptualFieldPublisher.publish(sensor.getMap().getMap());
 
-	  perceptualFieldPublisher.publish(sensor.getMapMsg());
+//	  perceptualFieldPublisher.publish(sensor.getMapMsg());
 
 //	  loop_rate.sleep();
 
 
+//	  int cc = gridMap.getIndex (110,185);
+//
+//	  std::cout << "beginn" << std::endl;
+//
+//	  std::cout << "cooupied	" << gridMap.isOccupied(5,96) << std::endl;
+//	  std::cout << "cooupied	" << gridMap.isOccupied(35,96) << std::endl;
+//
+//	  std::cout << "cooupied	" << gridMap.isOccupied(110,175) << std::endl;
+//	  std::cout << "cooupied	" << gridMap.isOccupied(110,185) << std::endl;
+//	  std::cout << "cooupied	" << gridMap.isOccupied(97,85) << std::endl;
+//	  std::cout << "cooupied	" << gridMap.isOccupied(97,35) << std::endl;
+//	  std::cout << "cooupied	" << gridMap.isOccupied(97,120) << std::endl;
+
+//	  gridMap.isOccupied(96, 35)
   }
 
 

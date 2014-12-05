@@ -142,6 +142,20 @@ void Map::inflate()
 //	for
 //}
 
+bool Map::isOccupied(float x, float y)
+{
+	int row, column;
+	row = floor(x);
+	column = floor(y);
+
+	int index = getIndex(row, column);
+
+	return (m_map.data[index] != 0);
+}
+
+
+
+
 // Since map.data is an array, getIndex convert the matrix index (easy for calculation) in the aray index
 int Map::getIndex(int row, int column)
 {
