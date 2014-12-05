@@ -83,7 +83,7 @@ int main(int argc, char **argv)
   Model model(particleCloud, numberParticle);
 
   // Sensor
-  Sensor sensor(particleCloud, numberParticle, &gridMap);
+  Sensor sensor(particleCloud, numberParticle, &gridMap, correlation);
 
   // Resampler
   Resampler resample(particleCloud, numberParticle, &gridMap, correlation);
@@ -162,16 +162,29 @@ std::cout << gridMap.getRow() * gridMap.getResolution() << std::endl;
 
   //** Start the algorithm
 
+  // The first time, since we don't want to consider particle that are inside the wall
+  resample.resampleMap();
+
   ros::Rate loop_rate(10);
 
   while (ros::ok())
   {
 	  ros::spinOnce();
 
+	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
+
 	  //** Make the calculation
 	  model.modelPrediction();
-//	  sensor.sensorPrediction();
-	  resample.resampleMap();
+
+
+	  sensor.sensorPrediction();
+
+//	  std::cout << "After prediction: in main" << std::endl;
+//	  for(int i = 0; i < numberParticle; i++)
+//	  {
+//		  std::cout << "correlation " << i << " = "<< correlation[i] << std::endl;
+//	  }
+//	  resample.resampleUniversal();
 
 	  //** Publish
 
@@ -182,7 +195,6 @@ std::cout << gridMap.getRow() * gridMap.getResolution() << std::endl;
 //
 //		}
 
-	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
 
 
 	  loop_rate.sleep();

@@ -33,13 +33,11 @@
 class Sensor
 {
 private:
-//	Map localMap;
-//	nav_msgs::OccupancyGrid localMapMsg;
 
 	sensor_msgs::LaserScan::ConstPtr scanPtr;
 	Particle * particleCloud;
-	Map * globalMap;
 	int numberOfParticle;
+	Map * mapPtr;
 	double * correlation;
 
 	float rangeMin;
@@ -50,17 +48,11 @@ private:
 
 
 public:
-	Sensor(Particle * pc, int nOp, Map *Globalmap);
+	Sensor(Particle * pc, int numPart, Map *map, double * cor);
 	virtual ~Sensor();
 
-
 	void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
-	void occupancyGridMapping();
-
-	Map getMap();
-	nav_msgs::OccupancyGrid getMapMsg();
-
-	double * findCorrespondence();
+	void sensorPrediction();
 
 };
 

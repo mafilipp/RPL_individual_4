@@ -9,11 +9,12 @@
 
 
 
-Sensor::Sensor(Particle * pc, int nOp, Map *Globalmap)
+Sensor::Sensor(Particle * pc, int numPart, Map *map, double * cor)
 {
 	particleCloud = pc;
-	numberOfParticle = nOp;
-	globalMap = Globalmap;
+	numberOfParticle = numPart;
+	mapPtr = map;
+	correlation = cor;
 
 	rangeMin = 0;
 	rangeMax = 0;
@@ -39,55 +40,104 @@ void Sensor::laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 
 }
 
-double * Sensor::findCorrespondence()
+void Sensor::sensorPrediction()
 {
-	double correlation[numberOfParticle];
+//	ROS_INFO("mapPtr->getResolution() = %f", mapPtr->getResolution()); -- > Corretta!!
+	std::cout << "Start sensorPrediction" << std::endl;
+
+	bool calculated;
 
 	for (int i = 0; i < numberOfParticle; i++)
 	{
+
+//		std::cout << "Particle " << i << std::endl;
 		int idx = 0;
 		int count = 0;
 		double total = 0;
 
-		// Find possible Cell
-		for (double angle = angleMin; angle < angleMax; angle = angle + angleIncrement)
+		// Find the distance to the wall
+		double x, y, theta, upX, upY;
+
+		x = particleCloud[i].getX();
+		y = particleCloud[i].getY();
+//		ROS_INFO("particle %d: x = %f, y = %f", i, x, y);
+		// Sembra ok
+		theta = particleCloud[i].getTheta();
+
+		ROS_INFO("HERE1");
+
+//		if(    x > mapPtr->getColumn() * mapPtr->getResolution() ||
+//			   x < 0 ||
+//			   y > mapPtr->getRow() * mapPtr->getResolution() ||
+//			   y < 0 ||
+//			   mapPtr-> isOccupied(y,x))
+		if( (x > mapPtr->getColumn() * mapPtr->getResolution()) || (x < 0) || (y > mapPtr->getRow() * mapPtr->getResolution() ) || (y < 0) || (mapPtr-> isOccupied(y,x) ) )
 		{
-			// Find the distance to the wall
-			double x, y, theta, upX, upY;
+			ROS_INFO("HERE");
 
-			x = particleCloud[i].getX();
-			y = particleCloud[i].getY();
-			theta = particleCloud[i].getTheta();
-
-			upX = cos(angle + theta)*globalMap->getResolution();
-			upY = sin(angle + theta)*globalMap->getResolution();
-
-
-			for(double dist = 0; dist < 1; dist = dist + 0.01)
+			correlation[i] = 0;
+		}
+		else
+		{
+			ROS_INFO("HERE2");
+			// Find possible Cell -- > Per un quache motivo non mi entra ne loop....
+			for (double angle = angleMin; angle < angleMax; angle = angle + angleIncrement)
 			{
-				x = x + upX;
-				y = y + upY;
+				ROS_INFO("HERE3");
+				ROS_INFO("angle -> %f", angle);
+				ROS_INFO("index -> %d", idx);
+				ROS_INFO("range -> %f", scanPtr->ranges[idx]);
 
-				if(globalMap->isOccupied(x,y))
+				calculated = false;
+
+				// Forse al contrario??
+				upX = cos(angle + theta) * mapPtr->getResolution();
+				upY = sin(angle + theta) * mapPtr->getResolution();
+
+				ROS_INFO("x = %f, y = %f", x, y);
+				for(double dist = 0; dist < 1; dist = dist + 0.01)
 				{
-					count = count + 1;
-					if(scanPtr->ranges[idx] < rangeMax)
-					{
-						total = total + std::abs(dist - scanPtr->ranges[idx]);
+					x = x + upX;
+					y = y + upY;
 
+					std::cout << "x = " << x << " y = " << y << std::endl;
+					if(mapPtr->isOccupied(y,x))
+					{
+						ROS_INFO("3");
+
+						if(scanPtr->ranges[idx] > rangeMin && scanPtr->ranges[idx] < rangeMax)
+						{
+							total = total + std::abs(dist - scanPtr->ranges[idx]);
+							count = count + 1;
+							calculated = true;
+						}
+						else
+						{
+							calculated = false;
+						}
 					}
-					continue;
 				}
+				if(!calculated)
+				{
+					total = total + std::abs(1 - scanPtr->ranges[idx]);
+				}
+				idx = idx + 1;
 			}
 
-			idx = idx + 1;
+			// Calculate Correlation
+
+			// Store it in the correlation array
+			correlation[i] = total;
 		}
-
-		// Calculate Correlation
-
-		// Store it in the correlation array
-		correlation[i] = total;
 	}
+
+//	for(int i = 0; i < numberOfParticle; i++)
+//	{
+//		if(i < 10)
+//			correlation[i] = 10;
+//		else
+//			correlation[i] = 0;
+//	}
 }
 
 
