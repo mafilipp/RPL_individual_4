@@ -34,17 +34,17 @@ public:
 	void odomCallback(const nav_msgs::Odometry::ConstPtr& msg);
 	double sample(double variance);
 	void modelPrediction();
-	void setModelUpdatedPose();
-	geometry_msgs::PoseStamped publishSinglePose();
-	geometry_msgs::PoseArray publishParticleArray();
+//	void setModelUpdatedPose();
+//	geometry_msgs::PoseStamped publishSinglePose();
+//	geometry_msgs::PoseArray publishParticleArray();
 
 
 
 
 private:
-	geometry_msgs::Pose pose;
-
-	std::default_random_engine generator;
+//	geometry_msgs::Pose pose;
+//
+//	std::default_random_engine generator;
 
 	// Used by callback
 	double x_odom, x_odom_old, y_odom, y_odom_old, theta_odom, theta_odom_old;

@@ -43,28 +43,29 @@ Model::Model(Particle * pc, int nOp)
 	usingOdomData = false;
 	isUpToDate = false;
 
+	// Connect the model with the particle cloud
 	particleCloud = pc;
 	numberOfParticle = nOp;
 
-	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-	generator.seed(seed);
+//	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+//	generator.seed(seed);
 }
 
 Model::~Model() {
 	// TODO Auto-generated destructor stub
 }
 
-geometry_msgs::PoseStamped Model::publishSinglePose()
-{
-	geometry_msgs::PoseStamped poseStamped;
-
-	poseStamped.header.frame_id = "odometry_link";
-	poseStamped.header.stamp = ros::Time();
-
-	poseStamped.pose = pose;
-
-	return poseStamped;
-}
+//geometry_msgs::PoseStamped Model::publishSinglePose()
+//{
+//	geometry_msgs::PoseStamped poseStamped;
+//
+//	poseStamped.header.frame_id = "odometry_link";
+//	poseStamped.header.stamp = ros::Time();
+//
+//	poseStamped.pose = pose;
+//
+//	return poseStamped;
+//}
 
 void Model::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
@@ -75,9 +76,6 @@ void Model::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 //	{
 	overwritingOdometry = true;
 
-	x_odom_old = x_odom;
-	y_odom_old = y_odom;
-	theta_odom_old = theta_odom;
 
 	x_odom = msg->pose.pose.position.x;
 	y_odom = msg->pose.pose.position.y;
@@ -86,6 +84,7 @@ void Model::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 	isUpToDate = true;
 	overwritingOdometry = false;
 
+//	modelPrediction();
 //	}
 
 
@@ -104,10 +103,10 @@ void Model::modelPrediction()
 //	{
 //		usingOdomData = true;
 
-	alpha1 = 0.01;
-	alpha2 = 0.01;
-	alpha3 = 0.01;
-	alpha4 = 0.01;
+	alpha1 = 0.0;
+	alpha2 = 0.0;
+	alpha3 = 0.0;
+	alpha4 = 0.0;
 
 //	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
 	dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
@@ -116,7 +115,7 @@ void Model::modelPrediction()
 
 	dRot1_hat = dRot1   - sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2));
 	dTrans_hat = dTrans - sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) );
-	dRot2_hat = dRot2   - sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) );
+	dRot2_hat = dRot2 - sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) );
 
 	for(int i = 0; i < numberOfParticle; i++)
 	{
@@ -143,6 +142,10 @@ void Model::modelPrediction()
 		isUpToDate = false;
 //		return pose;
 
+
+		x_odom_old = x_odom;
+		y_odom_old = y_odom;
+		theta_odom_old = theta_odom;
 	}
 
 }
@@ -193,44 +196,50 @@ void Model::modelPrediction()
 //
 //}
 
-void Model::setModelUpdatedPose()
-{
-	x_old = pose.position.x;
-	y_old = pose.position.y;
-	theta_old = tf::getYaw(pose.orientation);
-}
+//void Model::setModelUpdatedPose()
+//{
+//	x_old = pose.position.x;
+//	y_old = pose.position.y;
+//	theta_old = tf::getYaw(pose.orientation);
+//}
 
 double Model::sample(double variance)
 {
-
-
 //	std::normal_distribution<double> distribution(0, sqrt(variance));
 //
 //	return distribution(generator);
+//	return ( rand()/RAND_MAX * sqrt(variance) *sqrt(6));
+//	double sum;
+//	double sDeviation = sqrt(variance);
+//	for (int i = 0; i < 12; i ++)
+//	{
+//		sum = sum + (2 * sDeviation * rand()/RAND_MAX - sDeviation);
+//	}
+//	return sum;
 
-	return ( rand()/RAND_MAX * sqrt(variance) *sqrt(6));
+	return sqrt(variance) * (2* rand()/RAND_MAX -1) * (2* rand()/RAND_MAX -1);
 }
 
 
-geometry_msgs::PoseArray Model::publishParticleArray()
-{
-	geometry_msgs::PoseArray poseArray;
-	geometry_msgs::Pose pose;
-
-	poseArray.header.frame_id = "odometry_link";
-	poseArray.header.stamp = ros::Time();
-//	poseArray.header.seq = 1;  --> A cosa serve?
-
-	// For all particle, plot the pose
-	for (int i = 0; i < numberOfParticle; i ++)
-	{
-		pose.position.x = particleCloud[i].getX();
-		pose.position.y = particleCloud[i].getY();
-		pose.position.z = 0.0;
-		pose.orientation = tf::createQuaternionMsgFromYaw(particleCloud[i].getTheta());
-
-		poseArray.poses.push_back(pose);
-	}
-
-	return poseArray;
-}
+//geometry_msgs::PoseArray Model::publishParticleArray()
+//{
+//	geometry_msgs::PoseArray poseArray;
+//	geometry_msgs::Pose pose;
+//
+//	poseArray.header.frame_id = "odometry_link";
+//	poseArray.header.stamp = ros::Time();
+////	poseArray.header.seq = 1;  --> A cosa serve?
+//
+//	// For all particle, plot the pose
+//	for (int i = 0; i < numberOfParticle; i ++)
+//	{
+//		pose.position.x = particleCloud[i].getX();
+//		pose.position.y = particleCloud[i].getY();
+//		pose.position.z = 0.0;
+//		pose.orientation = tf::createQuaternionMsgFromYaw(particleCloud[i].getTheta());
+//
+//		poseArray.poses.push_back(pose);
+//	}
+//
+//	return poseArray;
+//}

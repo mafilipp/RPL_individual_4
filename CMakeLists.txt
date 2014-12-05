@@ -181,5 +181,5 @@ include_directories(
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
 
-add_executable(particle_filter src/map.cpp src/Model.cpp src/Particle.cpp src/main.cpp)
+add_executable(particle_filter src/map.cpp src/Model.cpp src/Particle.cpp src/Sensor.cpp src/Resampler.cpp src/main.cpp)
 target_link_libraries(particle_filter ${catkin_LIBRARIES})
