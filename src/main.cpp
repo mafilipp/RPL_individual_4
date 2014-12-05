@@ -72,9 +72,10 @@ int main(int argc, char **argv)
   Map gridMap(robotRadius);
 
   // Particles
-  int numberParticle = 100;
+  int numberParticle = 800;
   Particle * particleCloud = new Particle[numberParticle];
 
+  // Resampler --> Perché qui il resampler non funziona???
   // Correlation
   double * correlation = new double[numberParticle];
 
@@ -82,11 +83,10 @@ int main(int argc, char **argv)
   Model model(particleCloud, numberParticle);
 
   // Sensor
-  Sensor sensor(particleCloud, numberParticle, gridMap);
+  Sensor sensor(particleCloud, numberParticle, &gridMap);
 
   // Resampler
-  Resampler resample(particleCloud, numberParticle, gridMap, correlation);
-
+  Resampler resample(particleCloud, numberParticle, &gridMap, correlation);
 
   //** Initialize node
   ros::NodeHandle n;
@@ -99,13 +99,13 @@ int main(int argc, char **argv)
   ros::Publisher particle_pose = n.advertise<geometry_msgs::PoseArray>( "/particle_pose", 0 );
 //  ros::Publisher single_particle_pose = n.advertise<geometry_msgs::PoseStamped>( "/single_particle_pose", 0);
 
-
   //** Initialize Element
 
   // First wait until we get the map
   while (!gridMap.isUpToDate())
   {
     ros::spinOnce();
+
   }
 
   // Initialize the particle with ramdom pose
@@ -114,6 +114,8 @@ int main(int argc, char **argv)
   std::uniform_real_distribution<double> distribution(0.0,1.0);
 
   double number;
+
+std::cout << gridMap.getRow() * gridMap.getResolution() << std::endl;
 
   for (int i = 0; i < numberParticle; i++)
   {
@@ -126,7 +128,37 @@ int main(int argc, char **argv)
 
 	  number = distribution(generator);
 	  particleCloud[i].setTheta( deg2Rad(number*360) );
+
   }
+
+//  	for(int i = 0; i < numberParticle; i++)
+//  	{
+//  		std::cout << "x = " << particleCloud[i].getX() << "  y = " << particleCloud[i].getY() << std::endl;
+//
+//  	}
+
+
+  //** Declare last element
+
+
+//  particleCloud[55].setX(1.9);
+//  particleCloud[55].setTheta(33);
+//
+//  resample.debug();
+//  std::cout << particleCloud[55].getX() << std::endl;
+//  std::cout << particleCloud[55].getTheta() << std::endl;
+//
+//  Particle * ptr = particleCloud;
+//  resample.debug();
+//
+//  std::cout << ptr[55].getX() << std::endl;
+//  std::cout << ptr[55].getTheta() << std::endl;
+//  resample.debug();
+//
+//  ptr[55].setTheta(23);
+//  std::cout << particleCloud[55].getTheta() << std::endl;
+//  resample.debug();
+
 
   //** Start the algorithm
 
@@ -143,6 +175,12 @@ int main(int argc, char **argv)
 
 	  //** Publish
 
+//		std::cout << "All particle" << std::cout;
+//		for(int i = 0; i < numberParticle; i++)
+//		{
+//			std::cout << "x = " << particleCloud[i].getX() << "  y = " << particleCloud[i].getY() << std::endl;
+//
+//		}
 
 	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
 

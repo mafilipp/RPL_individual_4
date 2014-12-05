@@ -50,7 +50,7 @@ private:
 
 
 public:
-	Sensor(Particle * pc, int nOp, Map Globalmap);
+	Sensor(Particle * pc, int nOp, Map *Globalmap);
 	virtual ~Sensor();
 
 

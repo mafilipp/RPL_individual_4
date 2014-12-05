@@ -9,11 +9,17 @@
 
 
 
-Sensor::Sensor(Particle * pc, int nOp, Map Globalmap)
+Sensor::Sensor(Particle * pc, int nOp, Map *Globalmap)
 {
 	particleCloud = pc;
 	numberOfParticle = nOp;
-	globalMap = &Globalmap;
+	globalMap = Globalmap;
+
+	rangeMin = 0;
+	rangeMax = 0;
+	angleMin = 0;
+	angleMax = 0;
+	angleIncrement = 0;
 }
 
 Sensor::~Sensor() {
@@ -22,7 +28,7 @@ Sensor::~Sensor() {
 
 void Sensor::laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg)
 {
-	ROS_INFO("Laser");
+//	ROS_INFO("Laser");
 	scanPtr = msg;
 	rangeMin = scanPtr->range_min;
 	rangeMax = scanPtr->range_max;

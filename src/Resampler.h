@@ -31,10 +31,12 @@
 
 class Resampler {
 public:
-	Resampler(Particle * pc, int numPart, Map map, double * cor);
+	Resampler(Particle * pc, int numPart, Map *map, double * cor);
 	virtual ~Resampler();
 	void resampleMap();
 	void resampleUniversal();
+
+	void debug();
 
 private:
 	Particle * particleCloud;

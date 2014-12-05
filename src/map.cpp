@@ -54,6 +54,8 @@ void Map::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &map)
 	upToDate = true;
 
 	ROS_INFO("Element Map correctly updated");
+//	isOccupied(1,1);
+	ROS_INFO("res call  %f", resolution);
 }
 
 // Inflate the map
@@ -144,12 +146,23 @@ void Map::inflate()
 
 bool Map::isOccupied(float x, float y)
 {
+//	ROS_INFO("resolution %f", resolution);
+
 	int row, column;
-	row = floor(x);
-	column = floor(y);
+//	ROS_INFO("x %f", x);
+//	ROS_INFO("y %f", y);
+
+	row = floor(x/resolution);
+	column = floor(y/resolution);
+
+//	ROS_INFO("row %d", row);
+//	ROS_INFO("column %d", column);
 
 	int index = getIndex(row, column);
 
+
+//	ROS_INFO("index %d", index);
+//	ROS_INFO("index %d", m_map.data[index]);
 	return (m_map.data[index] != 0);
 }
 

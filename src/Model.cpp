@@ -69,7 +69,7 @@ Model::~Model() {
 
 void Model::odomCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
-	ROS_INFO("odom");
+//	ROS_INFO("odom");
 
 	// Introduce flag to avoid dreadlock
 //	if( ! usingOdomData)
