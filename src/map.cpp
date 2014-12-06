@@ -52,10 +52,7 @@ void Map::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &map)
 	resolution = m_map.info.resolution;
 	m_robotSizePx = m_robotSize/resolution;
 	upToDate = true;
-
 	ROS_INFO("Element Map correctly updated");
-//	isOccupied(1,1);
-	ROS_INFO("res call  %f", resolution);
 }
 
 // Inflate the map

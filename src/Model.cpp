@@ -11,7 +11,6 @@
 Model::Model(Particle * pc, int nOp)
 {
 	// Initialize all the parameter
-
 	x_odom = 0;
 	x_odom_old = 0;
 	y_odom = 0;

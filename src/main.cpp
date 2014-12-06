@@ -72,7 +72,7 @@ int main(int argc, char **argv)
   Map gridMap(robotRadius);
 
   // Particles
-  int numberParticle = 800;
+  int numberParticle = 100;
   Particle * particleCloud = new Particle[numberParticle];
 
   // Resampler --> Perché qui il resampler non funziona???
@@ -102,10 +102,10 @@ int main(int argc, char **argv)
   //** Initialize Element
 
   // First wait until we get the map
+
   while (!gridMap.isUpToDate())
   {
     ros::spinOnce();
-
   }
 
   // Initialize the particle with ramdom pose
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
   double number;
 
-std::cout << gridMap.getRow() * gridMap.getResolution() << std::endl;
+//std::cout << gridMap.getRow() * gridMap.getResolution() << std::endl;
 
   for (int i = 0; i < numberParticle; i++)
   {
@@ -131,39 +131,12 @@ std::cout << gridMap.getRow() * gridMap.getResolution() << std::endl;
 
   }
 
-//  	for(int i = 0; i < numberParticle; i++)
-//  	{
-//  		std::cout << "x = " << particleCloud[i].getX() << "  y = " << particleCloud[i].getY() << std::endl;
-//
-//  	}
-
-
-  //** Declare last element
-
-
-//  particleCloud[55].setX(1.9);
-//  particleCloud[55].setTheta(33);
-//
-//  resample.debug();
-//  std::cout << particleCloud[55].getX() << std::endl;
-//  std::cout << particleCloud[55].getTheta() << std::endl;
-//
-//  Particle * ptr = particleCloud;
-//  resample.debug();
-//
-//  std::cout << ptr[55].getX() << std::endl;
-//  std::cout << ptr[55].getTheta() << std::endl;
-//  resample.debug();
-//
-//  ptr[55].setTheta(23);
-//  std::cout << particleCloud[55].getTheta() << std::endl;
-//  resample.debug();
-
-
   //** Start the algorithm
 
   // The first time, since we don't want to consider particle that are inside the wall
+  std::cout << "bef resample" << std::endl;
   resample.resampleMap();
+  std::cout << "aft resample" << std::endl;
 
   ros::Rate loop_rate(10);
 
@@ -176,6 +149,11 @@ std::cout << gridMap.getRow() * gridMap.getResolution() << std::endl;
 	  //** Make the calculation
 	  model.modelPrediction();
 
+	  ROS_INFO("After model prediction");
+	  for(int i = 0; i < numberParticle; i++)
+	  {
+		  ROS_INFO("particle Main %d: x = %f, y = %f", i, particleCloud[i].getX(), particleCloud[i].getY());
+	  }
 
 	  sensor.sensorPrediction();
 
