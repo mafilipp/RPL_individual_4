@@ -131,6 +131,16 @@ void Resampler::resampleUniversal()
 	// In this function we don't need to find the correlation vector since it is already given by the sensor update
 	double sum = 0;
 
+//	for(int i = 0; i < numberOfParticle; i++)
+//	{
+//		ROS_INFO("resample correlation %d = %f", i, correlation[i]);
+//	}
+
+	for(int i = 0; i < numberOfParticle; i++)
+	{
+		sum = sum + correlation[i];
+	}
+
 	// Normalize the correlation vector
 	for(int i = 0; i < numberOfParticle; i++)
 	{

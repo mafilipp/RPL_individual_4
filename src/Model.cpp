@@ -102,22 +102,54 @@ void Model::modelPrediction()
 //	{
 //		usingOdomData = true;
 
-	alpha1 = 0.0;
-	alpha2 = 0.0;
-	alpha3 = 0.0;
-	alpha4 = 0.0;
+	alpha1 = 0.1;
+	alpha2 = 0.01;
+	alpha3 = 0.01;
+	alpha4 = 0.1;
 
 //	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
 	dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
 	dTrans = sqrt( pow((x_odom_old - x_odom), 2) + pow((y_odom_old - y_odom), 2) );
 	dRot2 = theta_odom - theta_odom_old - dRot1;
 
-	dRot1_hat = dRot1   - sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2));
-	dTrans_hat = dTrans - sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) );
-	dRot2_hat = dRot2 - sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) );
+//	dRot1 = std::max(dRot1, -0.01);
+//	dRot1 = std::min(dRot1, 0.01);
+//
+//	dTrans = std::max(dTrans, -0.01);
+//	dTrans = std::min(dTrans, 0.01);
+//
+//	dRot2 = std::max(dRot2, -0.01);
+//	dRot2 = std::min(dRot2, 0.01);
+
+
+//	std::cout << dRot1 << "   " << dTrans << "    " << dRot2 << std::endl;
+
+
 
 	for(int i = 0; i < numberOfParticle; i++)
 	{
+		double noise = 0;
+
+		noise = sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2));
+
+		noise = std::max(noise, -0.02);
+		noise = std::min(noise, 0.02);
+
+		dRot1_hat = dRot1   - noise;
+
+		noise = sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) );
+
+		noise = std::max(noise, -0.02);
+		noise = std::min(noise, 0.02);
+
+		dTrans_hat = dTrans - noise;
+
+		noise = sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) );
+
+		noise = std::max(noise, -0.02);
+		noise = std::min(noise, 0.02);
+
+		dRot2_hat = dRot2   - noise;
 
 		x_old = particleCloud[i].getX();
 		y_old = particleCloud[i].getY();
@@ -142,11 +174,12 @@ void Model::modelPrediction()
 //		return pose;
 
 
-		x_odom_old = x_odom;
-		y_odom_old = y_odom;
-		theta_odom_old = theta_odom;
+
 	}
 
+	x_odom_old = x_odom;
+	y_odom_old = y_odom;
+	theta_odom_old = theta_odom;
 }
 
 // For one particle
@@ -216,7 +249,13 @@ double Model::sample(double variance)
 //	}
 //	return sum;
 
-	return sqrt(variance) * (2* rand()/RAND_MAX -1) * (2* rand()/RAND_MAX -1);
+//	double number = sqrt(variance) * (2* (double)rand()/RAND_MAX -1) * (2* (double)rand()/RAND_MAX -1);
+//	std::cout << "number " << number << std::endl;
+//	return number;
+//	return sqrt(variance) * (2* (double)rand()/RAND_MAX -1) * (2* (double)rand()/RAND_MAX -1);
+
+	double stdDeviation = sqrt(variance);
+	return (stdDeviation * (2* (double)rand()/RAND_MAX -1) + stdDeviation * (2* (double)rand()/RAND_MAX -1)) * sqrt(6)/2;
 }
 
 

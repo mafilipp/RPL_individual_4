@@ -46,6 +46,8 @@ private:
 	float angleMax;
 	float angleIncrement;
 
+	bool upToDate;
+
 
 public:
 	Sensor(Particle * pc, int numPart, Map *map, double * cor);
@@ -53,7 +55,8 @@ public:
 
 	void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
 	void sensorPrediction();
-
+	bool isUpToDate() const;
+	void setUpToDate(bool upToDate);
 };
 
 #endif /* MAFILIPP_PARTICLE_FILTER_SRC_SENSOR_H_ */

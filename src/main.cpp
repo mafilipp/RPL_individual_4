@@ -72,7 +72,7 @@ int main(int argc, char **argv)
   Map gridMap(robotRadius);
 
   // Particles
-  int numberParticle = 100;
+  int numberParticle = 800;
   Particle * particleCloud = new Particle[numberParticle];
 
   // Resampler --> Perché qui il resampler non funziona???
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 
   // First wait until we get the map
 
-  while (!gridMap.isUpToDate())
+  while ( !(gridMap.isUpToDate() && sensor.isUpToDate()) )
   {
     ros::spinOnce();
   }
@@ -128,14 +128,32 @@ int main(int argc, char **argv)
 
 	  number = distribution(generator);
 	  particleCloud[i].setTheta( deg2Rad(number*360) );
+//	  particleCloud[i].setX(0.1);
+//	  particleCloud[i].setY(0.1);
+//	  particleCloud[i].setTheta(0);
 
   }
 
+//  particleCloud[0].setX(0);
+//  particleCloud[0].setY(0);
+//  particleCloud[0].setTheta(0);
+//
+//  particleCloud[1].setX(0.5);
+//  particleCloud[1].setY(0.5);
+//  particleCloud[1].setTheta(deg2Rad(270));
+//
+//  particleCloud[2].setX(1.1);
+//  particleCloud[2].setY(1.1);
+//  particleCloud[2].setTheta(0);
+//
+//  particleCloud[3].setX(1.5);
+//  particleCloud[3].setY(0.5);
+//  particleCloud[3].setTheta(deg2Rad(45 + 90));
   //** Start the algorithm
 
   // The first time, since we don't want to consider particle that are inside the wall
   std::cout << "bef resample" << std::endl;
-  resample.resampleMap();
+//  resample.resampleMap();
   std::cout << "aft resample" << std::endl;
 
   ros::Rate loop_rate(10);
@@ -149,20 +167,28 @@ int main(int argc, char **argv)
 	  //** Make the calculation
 	  model.modelPrediction();
 
-	  ROS_INFO("After model prediction");
-	  for(int i = 0; i < numberParticle; i++)
-	  {
-		  ROS_INFO("particle Main %d: x = %f, y = %f", i, particleCloud[i].getX(), particleCloud[i].getY());
-	  }
+	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
 
-	  sensor.sensorPrediction();
 
-//	  std::cout << "After prediction: in main" << std::endl;
+//	  ROS_INFO("After model prediction");
 //	  for(int i = 0; i < numberParticle; i++)
 //	  {
-//		  std::cout << "correlation " << i << " = "<< correlation[i] << std::endl;
+//		  ROS_INFO("particle Main %d: x = %f, y = %f", i, particleCloud[i].getX(), particleCloud[i].getY());
 //	  }
-//	  resample.resampleUniversal();
+
+
+	  sensor.sensorPrediction();
+//
+		for(int i = 0; i < numberParticle; i++)
+		{
+			ROS_INFO("main correlation %d = %f", i, correlation[i]);
+		}
+//
+//
+	  resample.resampleUniversal();
+//
+//	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
+
 
 	  //** Publish
 
