@@ -57,7 +57,7 @@ void Resampler::resampleMap()
 		else
 		{
 			// Check if they are in a free space or "in the wall"
-			if(mapPtr->isOccupied(y, x)) //-> I don't know why but so it make what we want to see in Rviz
+			if(mapPtr->isOccupied(x, y)) //-> I don't know why but so it make what we want to see in Rviz
 			{
 				correlation[i] = 0;
 			}

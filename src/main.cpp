@@ -72,7 +72,7 @@ int main(int argc, char **argv)
   Map gridMap(robotRadius);
 
   // Particles
-  int numberParticle = 800;
+  int numberParticle = 4;
   Particle * particleCloud = new Particle[numberParticle];
 
   // Resampler --> Perché qui il resampler non funziona???
@@ -117,6 +117,9 @@ int main(int argc, char **argv)
 
 //std::cout << gridMap.getRow() * gridMap.getResolution() << std::endl;
 
+  double smallx = 0;
+  double smally = 0;
+
   for (int i = 0; i < numberParticle; i++)
   {
 	  // TODO: controll that column correspond to x..
@@ -128,26 +131,33 @@ int main(int argc, char **argv)
 
 	  number = distribution(generator);
 	  particleCloud[i].setTheta( deg2Rad(number*360) );
-//	  particleCloud[i].setX(0.1);
-//	  particleCloud[i].setY(0.1);
+
+//	  particleCloud[i].setX(smallx+ 0.005);
+//	  particleCloud[i].setY(smally+ 0.005);
 //	  particleCloud[i].setTheta(0);
+//	  smallx = smallx + 0.01;
+//	  if(smallx > 2)
+//	  {
+//		  smallx = 0;
+//		  smally = smally + 0.01;
+//	  }
   }
 
-//  particleCloud[0].setX(0);
-//  particleCloud[0].setY(0);
-//  particleCloud[0].setTheta(0);
-//
-//  particleCloud[1].setX(0.5);
-//  particleCloud[1].setY(0.6);
-//  particleCloud[1].setTheta(deg2Rad(-60));
-//
-//  particleCloud[2].setX(1.9);
-//  particleCloud[2].setY(0.3);
-//  particleCloud[2].setTheta(deg2Rad(90));
-//
-//  particleCloud[3].setX(0.9);
-//  particleCloud[3].setY(1.1);
-//  particleCloud[3].setTheta(deg2Rad(90));
+  particleCloud[0].setX(0);
+  particleCloud[0].setY(0);
+  particleCloud[0].setTheta(0);
+
+  particleCloud[1].setX(0.6);
+  particleCloud[1].setY(0.7);
+  particleCloud[1].setTheta(deg2Rad(-60));
+
+  particleCloud[2].setX(1.9);
+  particleCloud[2].setY(0.3);
+  particleCloud[2].setTheta(deg2Rad(90));
+
+  particleCloud[3].setX(1.9);
+  particleCloud[3].setY(0.1);
+  particleCloud[3].setTheta(deg2Rad(90));
   //** Start the algorithm
 
   // The first time, since we don't want to consider particle that are inside the wall
@@ -165,10 +175,10 @@ int main(int argc, char **argv)
 	  // ora cambiato nel for loop
 	  ros::spinOnce();
 
-	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
+//	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
 
 	  //** Make the calculation
-	  model.modelPrediction();
+//	  model.modelPrediction();
 
 	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
 
@@ -179,16 +189,17 @@ int main(int argc, char **argv)
 //		  ROS_INFO("particle Main %d: x = %f, y = %f", i, particleCloud[i].getX(), particleCloud[i].getY());
 //	  }
 
-
+ROS_INFO(" Before prediction 2");
 	  sensor.sensorPrediction2();
 ////
-//		for(int i = 0; i < numberParticle; i++)
-//		{
-//			ROS_INFO("main correlation %d = %f", i, correlation[i]);
-//		}
+		for(int i = 0; i < numberParticle; i++)
+		{
+			ROS_INFO("main correlation %d = %f", i, correlation[i]);
+		}
 ////
 ////
-	  resample.resampleUniversal();
+//	  resample.resampleUniversal();
+//	  resample.resampleMap();
 //
 //	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
 

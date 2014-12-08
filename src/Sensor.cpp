@@ -156,7 +156,7 @@ void Sensor::sensorPrediction()
 			else
 			{
 				// Check if they are in a free space or "in the wall"
-				if(mapPtr->isOccupied(y, x)) //-> I don't know why but so it make what we want to see in Rviz
+				if(mapPtr->isOccupied(x, y)) //-> I don't know why but so it make what we want to see in Rviz
 				{
 					correlation[i] = 0;
 				}
@@ -196,7 +196,7 @@ void Sensor::sensorPrediction()
 
 	//						ROS_INFO(" In the dist for loop: x = %f, y = %f", x, y);
 
-							if(mapPtr->isOccupied(y,x))
+							if(mapPtr->isOccupied(x,y))
 							{
 
 	//							if(scanPtr->ranges[idx] > rangeMin && scanPtr->ranges[idx] < rangeMax)
@@ -476,17 +476,6 @@ void Sensor::sensorPrediction()
 
 void Sensor::sensorPrediction2()
 {
-//	for (int i = 0; i < numberOfParticle; i++)
-//	{
-//		ROS_INFO("sensorParticle x = %f, y = %f, theta = %f", particleCloud[i].getX(), particleCloud[i].getY(), particleCloud[i].getTheta());
-//	}
-
-
-		//	ROS_INFO("mapPtr->getResolution() = %f", mapPtr->getResolution()); -- > Corretta!!
-
-	// Le particelle a cui accediamo sono quelle correttamente updated dal model
-//	std::cout << "Start sensorPrediction" << std::endl;
-
 
 	// First check if we get some data from the scan (somethimes can happen that all the measurement are NaN)
 	bool allNaN = true;
@@ -507,15 +496,13 @@ void Sensor::sensorPrediction2()
 
 	if(!allNaN)
 	{
-		bool calculated;
-
 		double resolution = mapPtr->getResolution();
 		int nColumn = mapPtr->getColumn();
 		int nRow = mapPtr->getRow();
 
 		for (int i = 0; i < numberOfParticle; i++)
 		{
-			idx = 0;
+			idx = -1;
 			int count = 0;
 			double total = 0;
 
@@ -541,24 +528,23 @@ void Sensor::sensorPrediction2()
 			else
 			{
 				// Check if they are in a free space or "in the wall"
-				if(mapPtr->isOccupied(y, x)) //-> I don't know why but so it make what we want to see in Rviz
+				if(mapPtr->isOccupied(x, y)) //-> I don't know why but so it make what we want to see in Rviz
 				{
 					correlation[i] = 0;
 				}
 				else
 				{
+					ROS_INFO("Here 1");
 					// Here we are sure that the particle is inside the boundary and not in the wall
-
 
 					std::vector<std::pair<bool, bool>> maps; //Local and global Map
 
-//					std::vector<bool> localMap, globalMap;
 					std::vector<int> alreadyUsedIndex;
 
 //					for (double angle = angleMin; angle < angleMax; angle = angle + angleIncrement)
 					for (double angle = angleMax; angle > angleMin; angle = angle - angleIncrement)
-
 					{
+						idx = idx + 1;
 						x = x_original;
 						y = y_original;
 	//					ROS_INFO("x -> %f, y -> %f", x, y);
@@ -569,7 +555,6 @@ void Sensor::sensorPrediction2()
 						// Check if the scan measurement is NaN
 						if(isnan(scanPtr->ranges[idx]))
 						{
-							idx = idx + 1;
 							continue;
 						}
 
@@ -580,119 +565,120 @@ void Sensor::sensorPrediction2()
 
 						for(double dist = rangeMin; dist < rangeMax; dist = dist + resolution)
 						{
+							bool endLocalMap = false;
+
 							x = x + upX;
 							y = y + upY;
 
 	//						ROS_INFO(" In the dist for loop: x = %f, y = %f", x, y);
 
 //							int currentIndex = mapPtr->getIndexXY(x,y);
-							int currentIndex = 1;
+							int currentIndex = mapPtr->getIndexXY(x,y);
+
+							bool alreadyVisited = false;
+
 							for (std::vector<int>::iterator it = alreadyUsedIndex.begin(); it != alreadyUsedIndex.end(); ++it)
 							{
 								if(currentIndex == *it)
 								{
+									alreadyVisited = true;
 									break;
+								}
+							}
+							if(!alreadyVisited)
+							{
+								alreadyUsedIndex.push_back(currentIndex);
+
+								// check global Map
+								// Update global map representation
+								bool global, local;
+
+								if(mapPtr->isOccupied(x,y))
+								{
+									global = true;
 								}
 								else
 								{
-									alreadyUsedIndex.push_back(currentIndex);
-
-									// check global Map
-									// Update global map representation
-									bool global, local;
-
-									if(mapPtr->isOccupied(y,x))
-									{
-										global = true;
-									}
-									else
-									{
-										global = false;
-									}
-
-									// Update local map representation
-									if(true)
-									{
-										local = true;
-									}
-									else
-									{
-										local = false;
-									}
-
-									maps.push_back(std::make_pair(local,global));
-
+									global = false;
 								}
 
+								// Update local map representation
+								if( (dist - resolution < scanPtr->ranges[idx]) && (scanPtr->ranges[idx] < dist + resolution) )
+								{
+									local = true;
+									endLocalMap = true;
+								}
+								else
+								{
+									local = false;
+								}
+
+								maps.push_back(std::make_pair(local,global));
+
+							}
+
+							if(endLocalMap)
+							{
+								break;
 							}
 
 						}
 
-						// Here I checked the two maps
-						double m, sum;
-						double numerator, denominator,denominatorLocal, denominatorGlobal;
-
-						for (std::vector<std::pair<bool, bool>>::iterator itMap = maps.begin(); itMap != maps.end(); ++itMap)
-						{
-							sum = sum + itMap->first + itMap->second;
-						}
-						m = 1/(2 * maps.size())*(sum);
-
-						for (std::vector<std::pair<bool, bool>>::iterator itMap = maps.begin(); itMap != maps.end(); ++itMap)
-						{
-
-							numerator = numerator + (itMap->first - m) * (itMap->second - m);
-
-							denominatorLocal = denominatorLocal + pow((itMap->first - m),2);
-							denominatorGlobal = denominatorGlobal + pow((itMap->second - m),2);
-
-						}
-
-						denominator = sqrt(denominatorGlobal*denominatorLocal);
-
-						double rho = numerator/denominator;
-						correlation[i] = std::max(0.0, rho);
 					}
 
+					// Here I have all the points corresponding to the two map
+
+					double m, sum;
+					double numerator, denominator, denominatorLocal, denominatorGlobal;
+
+					for (std::vector<std::pair<bool, bool>>::iterator itMap = maps.begin(); itMap != maps.end(); ++itMap)
+					{
+						sum = sum + itMap->first + itMap->second;
+					}
+
+					m = 1/(2 * maps.size())*(sum);
+
+					for (std::vector<std::pair<bool, bool>>::iterator itMap = maps.begin(); itMap != maps.end(); ++itMap)
+					{
+
+						numerator = numerator + (itMap->first - m) * (itMap->second - m);
+
+						denominatorLocal = denominatorLocal + pow((itMap->first - m),2);
+						denominatorGlobal = denominatorGlobal + pow((itMap->second - m),2);
+
+					}
+
+					denominator = sqrt(denominatorGlobal*denominatorLocal);
+
+					double rho = numerator/denominator;
+					correlation[i] = std::max(0.0, rho);
 				}
-//				std::cout << "forse? = " << total << std::endl;
 
 			}
 
-			// Calculate Correlation
-			// Store it in the correlation array
-			if (count == 0)
-			{
-				correlation[i] = 0;
-	//			std::cout << "total = 0" << std::endl;
-
-			}
-			else
-			{
-				correlation[i] = total/count;
-	//			std::cout << "total / count " << total/count << std::endl;
-
-			}
 		}
 
-
-		double total = 0;
-		for (int i = 0; i < numberOfParticle; i++)
-		{
-			total = total + correlation[i];
-		}
-
-		for (int i = 0; i < numberOfParticle; i++)
-		{
-			if(correlation[i] != 0)
-			{
-				correlation[i] = (total - correlation[i])/total;
-			}
-	//		std::cout << "corr " << i << " = " << correlation[i] << std::endl;
-
-		}
 
 	}
+
+
+	double total = 0;
+	for (int i = 0; i < numberOfParticle; i++)
+	{
+		total = total + correlation[i];
+	}
+
+	for (int i = 0; i < numberOfParticle; i++)
+	{
+		if(correlation[i] != 0)
+		{
+			correlation[i] = (total - correlation[i])/total;
+		}
+//		std::cout << "corr " << i << " = " << correlation[i] << std::endl;
+
+	}
+
+}
 //
 //	for(int i = 0; i < numberOfParticle; i++)
 //	{
@@ -707,4 +693,4 @@ void Sensor::sensorPrediction2()
 //		else
 //			correlation[i] = 0;
 //	}
-}
+

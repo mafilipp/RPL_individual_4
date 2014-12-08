@@ -32,6 +32,8 @@ public:
 	// Since map.data is an array, getIndex convert the matrix index (easy for calculation) in the aray index
 	int getIndex(int row, int column);
 
+	int getIndexXY(float x, float y);
+
 
 	// Setters and getters
 	const nav_msgs::OccupancyGrid& getMap() const;
