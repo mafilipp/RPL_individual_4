@@ -2,39 +2,25 @@
  * Resampler.cpp
  *
  *  Created on: Dec 5, 2014
- *      Author: mafilipp
+ *      Author: Filippo Martinoni
+ *      Note: Implementation of Resampler.h
  */
 
 #include "Resampler.h"
 
-Resampler::Resampler(Particle * pc, int numPart, Map *map, double * cor) {
-	// TODO Auto-generated constructor stub
+Resampler::Resampler(Particle * pc, int numPart, Map *map, double * cor)
+{
 	particleCloud = pc;
 	numberOfParticle = numPart;
 	mapPtr = map;
 	correlation = cor;
-
-//	ROS_INFO("Resampler resolution before %f", mapPtr->getResolution());
-//	mapPtr->setResolution(13.2);
-//	ROS_INFO("Resampler resolution  %f", mapPtr->getResolution());
-//
-//	ROS_INFO("particle ptr -> 0.x = %f", particleCloud[0].getX());
-
-
 }
 
 Resampler::~Resampler() {
-	// TODO Auto-generated destructor stub
 }
-void Resampler::debug()
-{
-	std::cout << "deb" << std::endl;
-	  std::cout << particleCloud[55].getX() << std::endl;
-	  std::cout << particleCloud[55].getTheta() << std::endl;
-}
+
 void Resampler::resampleMap()
 {
-
 	// Find the total
 	double sum = 0;
 	double random;
@@ -57,7 +43,7 @@ void Resampler::resampleMap()
 		else
 		{
 			// Check if they are in a free space or "in the wall"
-			if(mapPtr->isOccupied(x, y)) //-> I don't know why but so it make what we want to see in Rviz
+			if(mapPtr->isOccupied(x, y))
 			{
 				correlation[i] = 0;
 			}
@@ -92,12 +78,10 @@ void Resampler::resampleMap()
 			sum = sum + correlation[i-1];
 			beta[i] = sum;
 		}
-
 	}
 
 	// Create a temporary vector for the store of the new particle
 	Particle * resampledParticle = new Particle[numberOfParticle];
-
 
 	// Choose the weighted particle
 	// Loop through the particle vector
@@ -111,7 +95,6 @@ void Resampler::resampleMap()
 				if(beta[j-1] <= random && random < beta[j])
 				{
 					resampledParticle[i] = particleCloud[j-1];
-//					std::cout << "choosen particle number " << j << std::endl;
 				}
 		}
 	}
@@ -122,19 +105,14 @@ void Resampler::resampleMap()
 		particleCloud[i] = resampledParticle[i];
 	}
 
-//	delete resampledParticle; --> chiedi Andrey
-
+	// Free the memory
+	delete[] resampledParticle;
 }
 
 void Resampler::resampleUniversal()
 {
 	// In this function we don't need to find the correlation vector since it is already given by the sensor update
 	double sum = 0;
-
-//	for(int i = 0; i < numberOfParticle; i++)
-//	{
-//		ROS_INFO("resample correlation %d = %f", i, correlation[i]);
-//	}
 
 	for(int i = 0; i < numberOfParticle; i++)
 	{
@@ -164,7 +142,6 @@ void Resampler::resampleUniversal()
 			sum = sum + correlation[i-1];
 			beta[i] = sum;
 		}
-
 	}
 
 	// Create a temporary vector for the store of the new particle
@@ -184,7 +161,6 @@ void Resampler::resampleUniversal()
 				if(beta[j-1] <= random && random < beta[j])
 				{
 					resampledParticle[i] = particleCloud[j-1];
-//					std::cout << "choosen particle number " << j << std::endl;
 				}
 		}
 	}
@@ -195,52 +171,6 @@ void Resampler::resampleUniversal()
 		particleCloud[i] = resampledParticle[i];
 	}
 
-	// Add some random particle
-
-
+	// Free the memory
+	delete[] resampledParticle;
 }
-
-//void Sensor::resample(double * correlation)
-//{
-//	// Find the total
-//	double sum = 0;
-//	double random;
-//
-//	// Create a new particle vector
-//	Particle * resampledParticle = new Particle[numberOfParticle];
-//
-//
-//	for(int i = 0; i < numberOfParticle; i++)
-//	{
-//		sum = sum + correlation[i];
-//	}
-//
-//	// Normalize the correlation vector
-//	for(int i = 0; i < numberOfParticle; i++)
-//	{
-//		correlation[i] = correlation[i] / sum;
-//	}
-//
-//	double beta[numberOfParticle];
-//	sum = 0;
-//	// Calculate the vector for resampling
-//	for(int i = 0; i < numberOfParticle; i++)
-//	{
-//		sum = sum + correlation[i];
-//		beta[i] = sum;
-//	}
-//
-//	// Choose the weighted particle
-//	for(int i = 0; i < numberOfParticle; i++)
-//	{
-//		random = rand()/RAND_MAX;
-//		for(int j = 0; j < numberOfParticle; j++)
-//		{
-//			if(random < correlation[j])
-//				resampledParticle[i] = particleCloud[j];
-//		}
-//	}
-//
-//	particleCloud =  resampledParticle;
-//
-//}

@@ -2,7 +2,7 @@
  * map.cpp
  *
  *  Created on: Oct 22, 2014
- *      Author: mafilipp
+ *      Author: Filippo Martinoni
  *      Note: Implementation of map.h
  */
 
@@ -54,15 +54,6 @@ void Map::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &map)
 	m_robotSizePx = m_robotSize/resolution;
 	upToDate = true;
 	ROS_INFO("Element Map correctly updated");
-
-//	int a = 1;
-//	for (int i = 0; i < nColumn*nRow; i++)
-//	{
-//		if(a%200 == 0)
-//			ROS_INFO("PPPPPPPPPP");
-//ROS_INFO("%d",m_map.data[i]);
-//		std::cout << m_map.data[i] << std::endl;
-//	}
 }
 
 // Inflate the map
@@ -146,66 +137,22 @@ void Map::inflate()
 	}
 }
 
-//void Map::clearMap()
-//{
-//	for
-//}
-
-//int Map::getIndexXY(float x, float y)
-//{
-//	//	ROS_INFO("resolution %f", resolution);
-//
-//		int row, column;
-//	//	ROS_INFO("x %f", x);
-//	//	ROS_INFO("y %f", y);
-//
-//		double sizeRow = nRow * resolution;
-//		double sizeColumn = nColumn * resolution;
-//
-//
-//		row = floor( (sizeRow - x) /resolution);
-//		column = floor( (sizeColumn - y) /resolution);
-//
-//	//	ROS_INFO("row %d", row);
-//	//	ROS_INFO("column %d", column);
-//
-//		int index = getIndex(row, column);
-//}
-
 
 bool Map::isOccupied(float x, float y)
 {
 	int index = getIndexXY(x, y);
-//	ROS_INFO("index %d", index);
-//	ROS_INFO("index %d", m_map.data[index]);
 	return (m_map.data[index] != 0);
 }
 
 int Map::getIndexXY(float x, float y)
 {
-	//	ROS_INFO("resolution %f", resolution);
-
 		int row, column;
-	//	ROS_INFO("x %f", x);
-	//	ROS_INFO("y %f", y);
 
 		column = floor(x/resolution);
 		row = floor(y/resolution);
 
-	//	ROS_INFO("row %d", row);
-	//	ROS_INFO("column %d", column);
-
-		int index = getIndex(row, column);
+		return getIndex(row, column);
 }
-//
-//
-//bool Map::isOccupied(float x, float y)
-//{
-//	int index = getIndexXY(x, y);
-////	ROS_INFO("index %d", index);
-////	ROS_INFO("index %d", m_map.data[index]);
-//	return (m_map.data[index] != 0);
-//}
 
 
 // Since map.data is an array, getIndex convert the matrix index (easy for calculation) in the aray index

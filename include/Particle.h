@@ -3,6 +3,7 @@
  *
  *  Created on: Dec 3, 2014
  *      Author: mafilipp
+ *      Note: This class represent the particle used by the filter (for the case of pose estimation)
  */
 
 #ifndef MAFILIPP_PARTICLE_FILTER_SRC_PARTICLE_H_

@@ -2,18 +2,17 @@
  * Particle.cpp
  *
  *  Created on: Dec 3, 2014
- *      Author: mafilipp
+ *      Author: Filippo Martinoni
+ *      Note: Implementation of particle.h
  */
 
 #include "Particle.h"
 
 Particle::Particle() {
-	// TODO Auto-generated constructor stub
 
 }
 
 Particle::~Particle() {
-	// TODO Auto-generated destructor stub
 }
 
 double Particle::getTheta() const {

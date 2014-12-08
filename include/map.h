@@ -24,14 +24,13 @@ public:
 	// inflate the current Map by the robot's radius
 	void inflate();
 
-	// Set all the element of the map to 0
-	void clearMap();
-
+	// There is a wall at location x,y ?
 	bool isOccupied(float x, float y);
 
 	// Since map.data is an array, getIndex convert the matrix index (easy for calculation) in the aray index
 	int getIndex(int row, int column);
 
+	// Get the index of the cell that contain point (x,y)
 	int getIndexXY(float x, float y);
 
 
