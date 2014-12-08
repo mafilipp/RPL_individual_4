@@ -694,3 +694,155 @@ void Sensor::sensorPrediction2()
 //			correlation[i] = 0;
 //	}
 
+
+
+
+void Sensor::sensorPrediction3()
+{
+
+	// First check if we get some data from the scan (somethimes can happen that all the measurement are NaN)
+	bool allNaN = true;
+	int idx = 0;
+
+	for (double check = angleMin; check < angleMax; check = check + angleIncrement)
+	{
+		if(isnan(scanPtr->ranges[idx]))
+		{
+			idx = idx + 1;
+		}
+		else
+		{
+			allNaN = false;
+			break;
+		}
+	}
+
+	if(allNaN)
+	{
+		for(int i = 0; i < numberOfParticle; i++)
+		{
+			correlation[i] = 1;
+		}
+	}
+	else
+	{
+		bool calculated;
+
+		double resolution = mapPtr->getResolution();
+		int nColumn = mapPtr->getColumn();
+		int nRow = mapPtr->getRow();
+
+		for (int i = 0; i < numberOfParticle; i++)
+		{
+			idx = -1;
+
+			//	int i = 0;
+			//	for (double angle = angleMax; angle > angleMin; angle = angle - angleIncrement)
+			//	{
+			//		std::cout << "pointer " << scanPtr->ranges[i] << std::endl;
+			//		i++;
+			//	}
+			int count = 0;
+			double total = 0;
+
+			// Find the distance to the wall
+			double x, y, x_original, y_original, theta, upX, upY;
+
+			x_original = particleCloud[i].getX();
+			y_original = particleCloud[i].getY();
+			theta = particleCloud[i].getTheta();
+
+			x = x_original;
+			y = y_original;
+
+//			ROS_INFO("particle Sensor %d: x = %f, y = %f, theta = %f", i, x, y, theta);
+
+			// Check if they are inside the map
+			if(    x > nColumn * resolution ||
+				   x < 0 ||
+				   y > nRow * resolution ||
+				   y < 0)
+			{
+				correlation[i] = 0;
+			}
+			else
+			{
+				// Check if they are in a free space or "in the wall"
+				if(mapPtr->isOccupied(x, y)) //-> I don't know why but so it make what we want to see in Rviz
+				{
+					correlation[i] = 0;
+				}
+				else
+				{
+					// Here we are sure that the particle is inside the boundary and not in the wall
+
+//					for (double angle = angleMin; angle < angleMax; angle = angle + angleIncrement)
+					for (double angle = angleMax; angle > angleMin; angle = angle - 6 * angleIncrement)
+					{
+						idx = idx + 6;
+
+						double range = scanPtr->ranges[idx];
+						x = x_original;
+						y = y_original;
+//						ROS_INFO("x -> %f, y -> %f", x, y);
+//						ROS_INFO("angle -> %f", angle);
+//						ROS_INFO("index -> %d", idx);
+//						ROS_INFO("range -> %f", scanPtr->ranges[idx]);
+
+						// Check if the scan measurement is NaN
+						if(isnan(range))
+						{
+							continue;
+						}
+
+						upX = cos(angle + theta) * resolution;
+						upY = sin(angle + theta) * resolution;
+
+//						ROS_INFO("upX = %f, upY = %f", upX, upY);
+
+						for(double dist = rangeMin; dist < rangeMax; dist = dist + resolution)
+						{
+							x = x + upX;
+							y = y + upY;
+
+//							ROS_INFO("dist: x = %f, y = %f", x, y);
+
+							if(mapPtr->isOccupied(x,y))
+							{
+//								ROS_INFO("angle = %f", angle);
+//								ROS_INFO(" In the dist for loop: x = %f, y = %f", x, y);
+//								ROS_INFO("dist = %f", dist);
+
+								double distCurrent = dist - rangeMin + resolution;
+								if( (distCurrent - 2*resolution < range) && (range < distCurrent + 2*resolution) )
+									count = count + 1;
+								break;
+							}
+						}
+
+					}
+
+					correlation[i] = count;
+
+				}
+			}
+		}
+	}
+}
+//
+//	for(int i = 0; i < numberOfParticle; i++)
+//	{
+//		ROS_INFO("sensor correlation %d = %f", i, correlation[i]);
+//	}
+
+
+//	for(int i = 0; i < numberOfParticle; i++)
+//	{
+//		if(i < 10)
+//			correlation[i] = 10;
+//		else
+//			correlation[i] = 0;
+//	}
+
+
+

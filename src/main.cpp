@@ -143,9 +143,9 @@ int main(int argc, char **argv)
 //	  }
   }
 
-  particleCloud[0].setX(0);
-  particleCloud[0].setY(0);
-  particleCloud[0].setTheta(0);
+  particleCloud[0].setX(0.4);
+  particleCloud[0].setY(0.1);
+  particleCloud[0].setTheta(deg2Rad(-90));
 
   particleCloud[1].setX(0.6);
   particleCloud[1].setY(0.7);
@@ -155,8 +155,8 @@ int main(int argc, char **argv)
   particleCloud[2].setY(0.3);
   particleCloud[2].setTheta(deg2Rad(90));
 
-  particleCloud[3].setX(1.9);
-  particleCloud[3].setY(0.1);
+  particleCloud[3].setX(1.1);
+  particleCloud[3].setY(1.1);
   particleCloud[3].setTheta(deg2Rad(90));
   //** Start the algorithm
 
@@ -189,9 +189,9 @@ int main(int argc, char **argv)
 //		  ROS_INFO("particle Main %d: x = %f, y = %f", i, particleCloud[i].getX(), particleCloud[i].getY());
 //	  }
 
-ROS_INFO(" Before prediction 2");
-	  sensor.sensorPrediction2();
-////
+//ROS_INFO(" Before prediction 2");
+	  sensor.sensorPrediction3();
+//////
 		for(int i = 0; i < numberParticle; i++)
 		{
 			ROS_INFO("main correlation %d = %f", i, correlation[i]);
