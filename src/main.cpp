@@ -108,7 +108,7 @@ int main(int argc, char **argv)
     ros::spinOnce();
   }
 
-  // Initialize the particle with ramdom pose
+  // Initialize the particle with ramdom posend
   unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
   std::default_random_engine generator (seed);
   std::uniform_real_distribution<double> distribution(0.0,1.0);
@@ -131,7 +131,6 @@ int main(int argc, char **argv)
 //	  particleCloud[i].setX(0.1);
 //	  particleCloud[i].setY(0.1);
 //	  particleCloud[i].setTheta(0);
-
   }
 
 //  particleCloud[0].setX(0);
@@ -139,27 +138,31 @@ int main(int argc, char **argv)
 //  particleCloud[0].setTheta(0);
 //
 //  particleCloud[1].setX(0.5);
-//  particleCloud[1].setY(0.5);
-//  particleCloud[1].setTheta(deg2Rad(270));
+//  particleCloud[1].setY(0.6);
+//  particleCloud[1].setTheta(deg2Rad(-60));
 //
-//  particleCloud[2].setX(1.1);
-//  particleCloud[2].setY(1.1);
-//  particleCloud[2].setTheta(0);
+//  particleCloud[2].setX(1.9);
+//  particleCloud[2].setY(0.3);
+//  particleCloud[2].setTheta(deg2Rad(90));
 //
-//  particleCloud[3].setX(1.5);
-//  particleCloud[3].setY(0.5);
-//  particleCloud[3].setTheta(deg2Rad(45 + 90));
+//  particleCloud[3].setX(0.9);
+//  particleCloud[3].setY(1.1);
+//  particleCloud[3].setTheta(deg2Rad(90));
   //** Start the algorithm
 
   // The first time, since we don't want to consider particle that are inside the wall
-  std::cout << "bef resample" << std::endl;
+//  std::cout << "bef resample" << std::endl;
 //  resample.resampleMap();
-  std::cout << "aft resample" << std::endl;
+//  std::cout << "aft resample" << std::endl;
 
   ros::Rate loop_rate(10);
 
   while (ros::ok())
   {
+
+	  // --> Controlla sensor update: è l'unica cosa che non funziona....
+	  // --> Controlla anche bene il senso di rotazione del sensore!!
+	  // ora cambiato nel for loop
 	  ros::spinOnce();
 
 	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
@@ -177,14 +180,14 @@ int main(int argc, char **argv)
 //	  }
 
 
-	  sensor.sensorPrediction();
-//
-		for(int i = 0; i < numberParticle; i++)
-		{
-			ROS_INFO("main correlation %d = %f", i, correlation[i]);
-		}
-//
-//
+	  sensor.sensorPrediction2();
+////
+//		for(int i = 0; i < numberParticle; i++)
+//		{
+//			ROS_INFO("main correlation %d = %f", i, correlation[i]);
+//		}
+////
+////
 	  resample.resampleUniversal();
 //
 //	  particle_pose.publish(publishParticleArray(particleCloud, numberParticle));
@@ -257,7 +260,7 @@ int main(int argc, char **argv)
 //	  std::cout << "cooupied	" << gridMap.isOccupied(110,185) << std::endl;
 //	  std::cout << "cooupied	" << gridMap.isOccupied(97,85) << std::endl;
 //	  std::cout << "cooupied	" << gridMap.isOccupied(97,35) << std::endl;
-//	  std::cout << "cooupied	" << gridMap.isOccupied(97,120) << std::endl;
+//	  std::cout << "cooupied	" << gridMap.isOccupied(97,120) << std::endl; //
 
 
 

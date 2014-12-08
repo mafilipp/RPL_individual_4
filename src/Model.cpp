@@ -102,10 +102,31 @@ void Model::modelPrediction()
 //	{
 //		usingOdomData = true;
 
-	alpha1 = 0.1;
-	alpha2 = 0.01;
-	alpha3 = 0.01;
-	alpha4 = 0.1;
+//	alpha1 = 0.1;
+//	alpha2 = 0.01;
+//	alpha3 = 0.01;
+//	alpha4 = 0.1;
+
+	// Parametri perfetti ;)
+	alpha1 = 0.0005;
+	alpha2 = 0.2;
+	alpha3 = 0.5;
+	alpha4 = 0.00001;
+
+//	alpha2 = 0.2;
+
+//	alpha3 = 0.5;
+
+//	alpha4 = 0.00001;
+
+//	alpha1 = 0.0;//0.01 troppo
+//	alpha2 = 0.0;//0.1 non male
+//	alpha3 = 0.0;//0.1 non male
+//	alpha4 = 0.01;
+//	  0.01
+//	  0.05
+//	  0.5
+//	  0.00001
 
 //	ROS_INFO("%f	%f		%f", sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2)), sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) ), sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) ));
 	dRot1 = atan2(y_odom - y_odom_old, x_odom - x_odom_old) - theta_odom_old;
@@ -132,22 +153,22 @@ void Model::modelPrediction()
 
 		noise = sample(alpha1 * pow(dRot1, 2) + alpha2 * pow(dTrans, 2));
 
-		noise = std::max(noise, -0.02);
-		noise = std::min(noise, 0.02);
+//		noise = std::max(noise, -0.02);
+//		noise = std::min(noise, 0.02);
 
 		dRot1_hat = dRot1   - noise;
 
 		noise = sample(alpha3 * pow(dTrans, 2) + alpha4 * pow(dRot1, 2) + alpha4 * pow(dRot2, 2) );
 
-		noise = std::max(noise, -0.02);
-		noise = std::min(noise, 0.02);
+//		noise = std::max(noise, -0.02);
+//		noise = std::min(noise, 0.02);
 
 		dTrans_hat = dTrans - noise;
 
 		noise = sample(alpha1 * pow(dRot2, 2) + alpha2 * pow(dTrans, 2) );
 
-		noise = std::max(noise, -0.02);
-		noise = std::min(noise, 0.02);
+//		noise = std::max(noise, -0.02);
+//		noise = std::min(noise, 0.02);
 
 		dRot2_hat = dRot2   - noise;
 
@@ -255,7 +276,12 @@ double Model::sample(double variance)
 //	return sqrt(variance) * (2* (double)rand()/RAND_MAX -1) * (2* (double)rand()/RAND_MAX -1);
 
 	double stdDeviation = sqrt(variance);
-	return (stdDeviation * (2* (double)rand()/RAND_MAX -1) + stdDeviation * (2* (double)rand()/RAND_MAX -1)) * sqrt(6)/2;
+	double tmp = 0;
+	double number = (stdDeviation * (2* (double)rand()/RAND_MAX -1) + stdDeviation * (2* (double)rand()/RAND_MAX -1)) * sqrt(6)/2;
+	tmp = std::max(number, -stdDeviation);
+	tmp = std::min(number, stdDeviation);
+
+	return tmp;
 }
 
 
@@ -281,3 +307,11 @@ double Model::sample(double variance)
 //
 //	return poseArray;
 //}
+
+
+
+// Parametri perfetti ;)
+//alpha1 = 0.0005;
+//alpha2 = 0.2;
+//alpha3 = 0.5;
+//alpha4 = 0.00001;

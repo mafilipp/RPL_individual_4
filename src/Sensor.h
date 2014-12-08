@@ -55,6 +55,7 @@ public:
 
 	void laserCallback(const sensor_msgs::LaserScan::ConstPtr& msg);
 	void sensorPrediction();
+	void sensorPrediction2();
 	bool isUpToDate() const;
 	void setUpToDate(bool upToDate);
 };
